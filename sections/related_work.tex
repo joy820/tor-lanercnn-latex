@@ -1,0 +1,73 @@
+
+
+
+\section{Related Work}
+
+\paragraph{Motion Forecasting:}
+Traditional methods use hand-crafted features and rules based on human knowledge 
+to model interactions and constraints in motion forecasting
+\cite{choi2013understanding,choi2012unified,deo2018would,helbing1995social,mehran2009abnormal,yamaguchi2011you,weichiuplay}, which are sometimes oversimplified and not scalable. 
+Recently, learning-based approaches employ the deep learning and
+significantly outperform traditional ones.
+Given the actors and the scene, a deep
+forecasting model first needs to design a format to encode the information.
+To do so, previous methods \cite{precog,chauffeurnet,covernet} often rasterize
+the trajectories of
+actors into a Birds-Eye-View (BEV) image, with different channels representing
+different observation timesteps, and then apply a CNN and RoI pooling
+\cite{fasterrcnn,maskrcnn} to extract actor features. 
+Maps can be encoded similarly
+\cite{nmp,dsd,intentnet,chauffeurnet,mfp}. 
+However, the square receptive fields of a CNN may not be efficient to
+encode actor movements \cite{lgn}, which are typically long curves.
+Moreover, the map rasterization may lose useful information like lane topologies. 
+RNNs are an alternative way to encode actor kinematic information
+\cite{matf,mfp,vectornet,tnt,socialgan,sociallstm} compactly and efficiently.
+Recently, VectorNet \cite{vectornet} and LaneGCN \cite{lgn} generalized such compact encodings to map representations. 
+VectorNet treats a map
+as a collection of polylines and uses a RNN to encode them, while LaneGCN builds a
+graph of lanes and conducts convolutions over the graph. Different from all these
+work, we encode both actors and maps in an unified graph representation, which
+is more structured and powerful.
+
+
+Modeling interactions among actors is also critical for
+a multi-agent system. Pioneering learning-based work design a social-pooling mechanism
+\cite{sociallstm,socialgan} to aggregate the information from nearby actors.
+However, such a 
+pooling operation may potentially lose
+actor-specific information. To address this,
+attention-mechanism \cite{sophie,socialatt,carnet,sun2019relational} or GNN-based
+methods \cite{dsd,interacttransformer,lgn,spagnn,precog,mfp,ilvm,vectornet} build actor
+interaction graphs (usually fully-connected with all actors or k-nearest
+neighbors based),
+and perform attention or message passing to update actor features.
+Social convolutional pooling \cite{matf,socialconvpool,pip} has also been explored, which maintains the spatial
+distribution of actors. 
+However, most of these work do not explicitly consider map structures,
+which largely affects interactions among actors in reality. 
+
+To generate each actor's predicted futures, many works sample multi-modal futures under a conditional variational auto-encoder (CVAE) framework
+\cite{desire,r2p2,mfp,precog,ilvm}, or with a multi-head/mode regressor
+\cite{lgn,cui2019multimodal,mercat2020multi}.
+Others output discrete sets of
+trajectory samples \cite{dsd,covernet,multipath} or occupancy maps
+\cite{jain2019discrete,p3}. Recently, TNT \cite{tnt}
+concurrently and independently designs a similar output parameterization as ours
+where lanes are used as priors for the forecasting. 
+Note that, in addition to the parameterization, we contribute a novel graph representation and a powerful
+architecture which significantly outperforms their results.
+
+
+
+\paragraph{Graph Neural Networks:}
+
+
+Relying on operators like graph convolution and message passing, graph neural networks (GNNs) and their variants \cite{scarselli2008graph,bruna2013spectral,li2015gated,kipf2016semi,hamilton2017inductive,liao2019lanczosnet} generalize deep learning on regular graphs like grids to ones with irregular topologies.
+They have achieved great successes in learning useful graph representations for
+various tasks \cite{monti2017geometric,qi20173d,teney2017graph,li2017situation,garcia2018few}.
+We draw inspiration from the general concept ``ego-graph'' and propose \textit{LaneRoI}, which is specially designed for lane graphs and captures both the local map topologies and the past motion information of an individual actor.
+Moreover, to capture interactions among actors, we further propose an
+interaction module which effectively communicates information among
+\textit{LaneRoI} graphs.
+

@@ -1,0 +1,17 @@
+Forecasting the future behaviors of dynamic actors is an important task in many robotics
+applications such as self-driving.  
+It is extremely challenging as actors have latent intentions 
+and their trajectories are governed by complex interactions between the other actors,
+themselves, and the maps.
+In this paper, we propose LaneRCNN, 
+a graph-centric motion forecasting model.
+Importantly, relying on a specially designed graph encoder, we learn a local
+lane graph representation per actor (LaneRoI) to encode its past motions and the local map topology.
+We further develop an interaction module which permits efficient message
+passing among local graph representations within a shared global lane graph.
+Moreover, we parameterize the output trajectories based on lane graphs, a more amenable prediction parameterization.
+Our LaneRCNN captures the actor-to-actor and the actor-to-map relations in a distributed and map-aware manner.
+We demonstrate the effectiveness of our approach on the large-scale Argoverse Motion
+Forecasting Benchmark. We achieve the \textbf{1st place} on the leaderboard and
+significantly outperform previous best results.
+
