@@ -37,7 +37,7 @@ v.s. \ROI representations as well as different designs for the shortcut mechanis
 In the lower half, we compare different strategies to model interactions, including a
 fully connected graph among actors with GNN / attention, as well as ours.
 Pooling refers to how we pool a 1D actor feature from each \ROI which are
-used by GNN / attention. Rows shaded in gray indicate the architecture used in
+used by GNN / attention. Rows in gray indicate the architecture used in
 our final model.}
 \label{table:ablation}
 \end{table*}
@@ -51,27 +51,32 @@ We evaluate the effectiveness of LaneRCNN on the large-scale Argoverse motion
 forecasting benchmark (Argoverse), which is publicly available and provides annotations
 of both actor motions and HD maps. In the following, we first
 explain our experimental setup and then compare our method against
-state-of-the-art on the leaderboard. We also conduct ablation studies on each
+state-of-the-arts. We also conduct ablation studies on each
 module of LaneRCNN to validate our design choices. Finally, we present some
 qualitative results.
 
 \subsection{Experimental Settings}
-\paragraph{Dataset:}
+\paragraph{Dataset}
 Argoverse provides a large-scale dataset \cite{argoverse} for the
-purpose of training, validating and testing models, where the task is to
-forecast 3 seconds future motions given 2 seconds past observations. 
+motion forecasting task, which is to
+forecast 3 seconds future motions of a particular actor (labeled with type
+`agent') given 2 seconds past observations of all
+actors in the scene, sampled at 10Hz. 
 This dataset consists of more than 30K real-world driving sequences collected in Miami and Pittsburgh.
 Those sequences are further split into train, validation, and test sets without
-any geographical overlapping. Each of them has 205942, 39472, and 78143 sequences
-respectively. In particular, each sequence contains the positions of all actors in
-a scene within the past 2 seconds history, annotated at 10Hz.
-It also specifies one interesting actor in this scene, with type `agent', whose future 3 seconds
-motions are used for the evaluation. The train and validation splits additionally
-provide future locations of all actors within 3 second horizon labeled at 10Hz, while annotations for test sequences are withheld from the public and used for
+any geographical overlapping. 
+% Each of them has 205942, 39472, and 78143 sequences
+% respectively. In particular, each sequence contains the positions of all actors in
+% a scene within the past 2 seconds history, annotated at 10Hz.
+% For each sequence, it specifies one interesting actor in this scene, with type `agent', whose future 3 seconds
+% motions are used for the evaluation. 
+% The train and validation splits additionally
+% provide future locations of all actors within 3 second horizon labeled at 10Hz, while 
+Annotations of future timesteps for test sequences are withheld from the public and used for
 the leaderboard evaluation. Besides, HD map information can be retrieved for all
 sequences. 
 
-\paragraph{Metrics:} We follow the benchmark setting and use Miss-Rate (MR), Average
+\paragraph{Metrics} We follow the benchmark setting and use Miss-Rate (MR), Average
 Displacement Error (ADE) and Final Displacement Error (FDE), which are also
 widely used in the community. MR is defined as the ratio of data that none of
 the predictions has less than 2.0 meters L2 error at the final timestep. ADE is
@@ -82,40 +87,54 @@ per actor and evaluating the $\text{min}_{K}\text{MR}$, $\text{min}_{K}\text{ADE
 $\text{min}_{K}\text{FDE}$ using the trajectory that is closest to the
 ground-truth.
 
-\paragraph{Implementation Details:}
+\paragraph{Implementation Details}
 We train our model on the \emph{train} set with the batch size of 64 and terminate at 30
 epochs. We use Adam \cite{adam} optimizer with the learning rate initialized at 0.01 and decayed by 10 at 20 epochs. To normalize the data, we translate and rotate the coordinate system of each sequence so that
 the origin is at current position ($t=0$) of `agent' actor and x-axis is aligned
 with its current direction. During training, we further apply a random rotation
 data augmentation within $(-\frac{2}{3}\pi, \frac{2}{3}\pi)$. No other data
-processing is applied such as label smoothing. More implementation
-details are provided in the supplementary~\ref{sec:supp_implement}.
+processing is applied such as label smoothing. 
+% More implementation details are provided in the supplementary~\ref{sec:supp_implement}.
 
 \subsection{Comparison with State-of-the-art}
-We compare our approach with top entries on Argoverse motion forecasting
-leaderboard \cite{argoleaderboard} as well as official baselines provided
-by the dataset \cite{argoverse} as shown in Table \ref{table:argo}. 
-We only submit our final model once to the leaderboard and achieve
-state-of-the-art performance.\footnote{Snapshot of the leaderboard at the submission time: Nov. 12, 2020.}
-This is a very challenging benchmark
-with around 100 participants at the time of our submission. Note that for the
-official ranking metric MR (K=6), previous leading methods are extremely close to
-each other, implying the difficulty of further improving the performance.
-Nevertheless, we significantly boost the number which verifies the
-effectiveness of our method. Among the competitors, both Jean
-\cite{mercat2020multi} and TNT \cite{tnt} use RNNs to encode actor kinematic
-states and lane polylines. They then build a fully-connected interaction graph
-among all actors and lanes, and use either the attention or GNNs to model
-interactions. As a result, they represent each actor with a single
-feature vector, which is less expressive than our \ROI representations. Moreover,
-the fully-connected interaction graph may also discard valuable map structure
-information. Note that TNT shares a similar output parameterization as
-ours, yet we perform better on all metrics. This further validates the advantages of
-our \ROI compared against traditional representations. Unfortunately, since Poly team does
-not publish their method, we can not compare with it qualitatively.
+We compare our approach to several recent state-of-the-art methods and summarize
+their performance on the test set in Table~\ref{table:argo}. Those methods
+include: UULM-MRM~\cite{argoleaderboard} (rasterization based model, joint winner
+of Argoverse Forecasting Challenge), WIMP~\cite{wimp} (recurrent graph-based
+attention model), VectorNet~\cite{vectornet} (lane topology based GNN model),
+LaneGCN~\cite{lgn} (lane topology based GCN model),
+SAMMP~\cite{mercat2020multi} (self-attention based model, joint winner of
+Argoverse Forecasting Challenge) and TNT~\cite{tnt} (target based model built
+upon vectornet). Note that all of them largely beat the Argoverse baselines
+(NN+Map and LSTM+Map), indicating this is a highly competitive benchmark.
+Nevertheless, our method significantly outperform all previous method on the
+official ranking metric (MR, K=6), and also beat most of the methods on other
+metrics. 
+% We compare our approach with top entries on Argoverse motion forecasting
+% leaderboard \cite{argoleaderboard} as well as official baselines provided
+% by the dataset \cite{argoverse} as shown in Table \ref{table:argo}. 
+% We only submit our final model once to the leaderboard and achieve
+% state-of-the-art performance.\footnote{Snapshot of the leaderboard at the submission time: Nov. 12, 2020.}
+% This is a very challenging benchmark
+% with around 100 participants at the time of our submission. Note that for the
+% official ranking metric MR (K=6), previous leading methods are extremely close to
+% each other, implying the difficulty of further improving the performance.
+% Nevertheless, we significantly boost the number which verifies the
+% effectiveness of our method. Among the competitors, both Jean
+% \cite{mercat2020multi} and TNT \cite{tnt} use RNNs to encode actor kinematic
+% states and lane polylines. They then build a fully-connected interaction graph
+% among all actors and lanes, and use either the attention or GNNs to model
+% interactions. As a result, they represent each actor with a single
+% feature vector, which is less expressive than our \ROI representations. Moreover,
+% the fully-connected interaction graph may also discard valuable map structure
+% information. Note that TNT shares a similar output parameterization as
+% ours, yet we perform better on all metrics. This further validates the advantages of
+% our \ROI compared against traditional representations. Unfortunately, since Poly team does
+% not publish their method, we can not compare with it qualitatively.
 
 
 \begin{figure*}[t]
+\vspace{-0.2cm}
 \centering
 \setlength{\tabcolsep}{1pt}
 \begin{tabular}{cccc}
@@ -128,6 +147,7 @@ not publish their method, we can not compare with it qualitatively.
 \caption{Qualitative results on Argoverse validation set. Here we show (from
 left-to-right): 1) curved lanes 2) lane changing 3) intersection 4) overtaking.}
 \label{fig:vis}
+\vspace{-0.2cm}
 \end{figure*}
 
 \subsection{Ablation Studies}
@@ -136,7 +156,7 @@ left-to-right): 1) curved lanes 2) lane changing 3) intersection 4) overtaking.}
 
 
 
-\paragraph{Ablations on LaneRoI Encoder:}
+\paragraph{Ablations on LaneRoI Encoder}
 We first show the ablation study on one of our main contributions, \ie, \ROI, in the upper half of Table
 \ref{table:ablation}. 
 The first row shows a representative of the traditional representations. 
@@ -179,7 +199,7 @@ provides some, but diminishing, benefits.
 
 
 
-\paragraph{Ablations on LaneRoI Interactor:}
+\paragraph{Ablations on LaneRoI Interactor}
 To verify the effectiveness of our map-aware interaction module, we compare against several model variants based
 on the fully-connected interaction graph among actors. Specifically, for each actor,
 we apply a \ROI encoder\footnote{We choose \ROI encoder rather than other
@@ -205,31 +225,11 @@ We also show that naively using the average pooling to embed features from
 \textit{LaneRoI}s to global graph does not achieves good performance
 because it ignores local structures.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 \subsection{Qualitative results}
 In Figure~\ref{fig:vis}, we show some qualitative results on Argoverse validation
 set. We can see that our method generally follows the map very well and demonstrates good
 multi-modalities. From left to right, we show 1) when an actor follows a
-curved lane, our model predicts two direction modes with different velocities;
+curved lane, we predict two direction modes with different velocities;
 2) when it is on a straight lane, our model covers the possibilities of lane changing; 3)
 when it's approaching an intersection, our model captures both the go-straight and the
 turn-right modes, especially with lower speeds for turning right, which are
@@ -237,5 +237,5 @@ quite common in the real world; 4) when there is an actor blocking the path, we
 predict overtaking behaviors matching exactly with the ground-truth. Moreover,
 for the lane-following mode, we predict much slower speeds which are consistent with
 this scenario, showing the effectiveness of our interaction modeling. 
-We provide more qualitative results in the supplementary~\ref{sec:supp_qual}.
+% We provide more qualitative results in the supplementary~\ref{sec:supp_qual}.
 

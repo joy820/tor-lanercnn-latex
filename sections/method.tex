@@ -210,6 +210,39 @@ is a two-layer multi-layer perceptron (MLP).
 
 
 
+\begin{table*}[t]
+\vspace{-0.2cm}
+\centering
+\begin{tabular}{l|>{\columncolor{grey}}cccccc}
+  \specialrule{.2em}{.1em}{.1em}
+  Method & MR (K=6) & minADE (K=6) & minFDE (K=6) & MR (K=1) & minADE (K=1) & minFDE (K=1) \\
+  \hline
+   NN+Map~\cite{argoverse} & 58.0 & 2.08 & 4.02 & 94.0 & 3.65 & 8.12\\
+   LSTM+Map~\cite{argoverse} & 67.0 & 2.08 & 4.19 & 75.0 & 2.92 & 6.45\\
+   UULM-MRM~\cite{argoleaderboard} & 21.8 & 0.97 & 1.55 & 63.4 & 1.90 & 4.19\\
+   WIMP~\cite{wimp} & 16.7 & 0.99 & 1.67 & 62.9 & 1.82 & 4.03\\ 
+   VectorNet~\cite{vectornet} & - & - & - & - & 1.81 & 4.01\\
+   LaneGCN~\cite{lgn} & 16.3 & \textbf{0.87} & \textbf{1.36} & 59.0 & 1.71 & 3.78\\
+   SAMMP~\cite{mercat2020multi} & 13.3 & 0.94 & 1.54 & 59.7 & 1.78 & 3.91\\
+   TNT~\cite{tnt} & 13.3 & 0.94 & 1.54 & 59.7 & 1.78 & 3.91\\
+   % NN+map & 3.65 & 8.12 & 94.0 & 2.08 & 4.02 & 58.0 \\
+   % LSTM+map & 2.92 & 6.45 & 75.0 & 2.08 & 4.19 & 67.0 \\
+   % TNT (4th) \cite{tnt} & 1.78 & 3.91 & 59.7 & 0.94 & 1.54 & 13.3   \\
+   % Jean (3rd) \cite{mercat2020multi} & 1.74 & 4.24 & 68.6 & 1.00 & \textbf{1.42} & 13.1  \\
+   % Poly (2nd) \cite{argoleaderboard} & 1.71 & 3.85 & 59.6 & \textbf{0.89} & 1.50 & 13.1 \\
+   \hline
+   Ours-LaneRCNN & \textbf{12.3} & 0.90 & 1.45 & \textbf{56.9}
+                       &\textbf{1.69} &\textbf{3.69}\\
+   % \textbf{1.69} & \textbf{3.69} & \textbf{56.9} & 0.90 & 1.45 & \textbf{12.3} \\
+  \specialrule{.1em}{.05em}{.05em}
+
+
+\end{tabular}
+\caption{Argoverse Motion Forecasting Benchmark (test set). All metrics are lower the
+  better and \colorbox{grey}{Miss-Rate (MR, K=6)} is the official ranking metric.}
+\label{table:argo}
+\vspace{-0.2cm}
+\end{table*}
 
 
 
@@ -265,35 +298,35 @@ interact with it. The distribute step is an inverse process: for each node in
 $\G_i$, find its neighbors, apply a lane pooling, and add the resulted embedding to original $\mathbf{F}_i$ (serving as a
 skip-connection).
 
+% \begin{table*}[t]
+% \vspace{-0.2cm}
+% \centering
+% \begin{tabular}{l|l|ccc|cc>{\columncolor{grey}}c}
+%   \specialrule{.2em}{.1em}{.1em}
+%  & \multirow{2}{*}{Method} & \multicolumn{3}{c|}{K=1} & \multicolumn{3}{c}{K=6} \\
+%  & & minADE & minFDE & MR & minADE & minFDE & MR \\
+%   \hline
+%   \multirow{3}{*}{Argoverse Baseline \cite{argoverse}} & NN & 3.45 & 7.88 & 87.0 & 1.71 & 3.28& 53.7 \\
+%                        & NN+map & 3.65 & 8.12 & 94.0 & 2.08 & 4.02 & 58.0 \\
+%                        & LSTM+map & 2.92 & 6.45 & 75.0 & 2.08 & 4.19 & 67.0 \\
+%   \hline
+%   \multirow{4}{*}{Leaderboard \cite{argoleaderboard}} & TNT (4th) \cite{tnt} & 1.78 & 3.91 & 59.7 & 0.94 & 1.54 & 13.3   \\
+%                                & Jean (3rd) \cite{mercat2020multi} & 1.74 & 4.24 & 68.6 & 1.00 & \textbf{1.42} & 13.1  \\
+%                                & Poly (2nd) \cite{argoleaderboard} & 1.71 & 3.85 & 59.6 & \textbf{0.89} & 1.50 & 13.1 \\
+%                                \cline{2-8}
+%                    & Ours-LaneRCNN (1st) & \textbf{1.69} & \textbf{3.69} &
+%   \textbf{56.9} & 0.90 & 1.45 &
+%   \textbf{12.3} \\
+%   \specialrule{.1em}{.05em}{.05em}
 
-\begin{table*}[t]
-\vspace{-0.2cm}
-\centering
-\begin{tabular}{l|l|ccc|cc>{\columncolor{grey}}c}
-  \specialrule{.2em}{.1em}{.1em}
- & \multirow{2}{*}{Method} & \multicolumn{3}{c|}{K=1} & \multicolumn{3}{c}{K=6} \\
- & & minADE & minFDE & MR & minADE & minFDE & MR \\
-  \hline
-  \multirow{3}{*}{Argoverse Baseline \cite{argoverse}} & NN & 3.45 & 7.88 & 87.0 & 1.71 & 3.28& 53.7 \\
-                       & NN+map & 3.65 & 8.12 & 94.0 & 2.08 & 4.02 & 58.0 \\
-                       & LSTM+map & 2.92 & 6.45 & 75.0 & 2.08 & 4.19 & 67.0 \\
-  \hline
-  \multirow{4}{*}{Leaderboard \cite{argoleaderboard}} & TNT (4th) \cite{tnt} & 1.78 & 3.91 & 59.7 & 0.94 & 1.54 & 13.3   \\
-                               & Jean (3rd) \cite{mercat2020multi} & 1.74 & 4.24 & 68.6 & 1.00 & \textbf{1.42} & 13.1  \\
-                               & Poly (2nd) \cite{argoleaderboard} & 1.71 & 3.85 & 59.6 & \textbf{0.89} & 1.50 & 13.1 \\
-                               \cline{2-8}
-                   & Ours-LaneRCNN (1st) & \textbf{1.69} & \textbf{3.69} &
-  \textbf{56.9} & 0.90 & 1.45 &
-  \textbf{12.3} \\
-  \specialrule{.1em}{.05em}{.05em}
 
+% \end{tabular}
+% \caption{Argoverse Motion Forecasting Leaderboard. All metrics are lower the
+%   better and \colorbox{grey}{Miss-Rate (MR, K=6)} is the official ranking metric.}
+% \label{table:argo}
+% \vspace{-0.2cm}
+% \end{table*}
 
-\end{tabular}
-\caption{Argoverse Motion Forecasting Leaderboard. All metrics are lower the
-  better and \colorbox{grey}{Miss-Rate (MR, K=6)} is the official ranking metric.}
-\label{table:argo}
-\vspace{-0.2cm}
-\end{table*}
 
 
 \subsection{Map-Relative Outputs Decoding}
@@ -329,8 +362,8 @@ Similar to the shortcut layer introduced in Sec.
 \ref{sec:backbone}, we use a lane pooling followed by a 1D CNN to 
 pool features of this trajectory. Finally, we decode a pair of values per timestep, representing the residue from the trajectory proposal to the
 ground-truth future position at this timestep (encoded in Frenet coordinate of
-this trajectory proposal). We provide more detailed definitions of our
-parameterization and output space in the supplementary~\ref{sec:supp_output}.
+this trajectory proposal). 
+% We provide more detailed definitions of our parameterization and output space in the supplementary~\ref{sec:supp_output}.
 
 
 

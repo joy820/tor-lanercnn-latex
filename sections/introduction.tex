@@ -1,4 +1,3 @@
-
 \section{Introduction}
 Autonomous vehicles need to navigate in dynamic environments in a safe and comfortable manner.  
 This requires predicting the future motions of other agents to understand how the 
@@ -10,21 +9,20 @@ forecasting their motions is very challenging and is an unsolved problem.
 
 By leveraging deep learning, the motion forecasting community has been making steady progress. 
 Most state-of-the-art models share a similar design principle: using a single feature
-vector to characterize all the information related to an actor, as shown in Fig.~\ref{fig:teaser}, left.
+vector to characterize all the information related to an actor as shown in Fig.~\ref{fig:teaser}, left.
 They typically first encode for each actor
-its past motions and the surrounding map (or other context information) into a feature
+its past motions and the surrounding context (\eg, map information) into a feature
 vector, which is computed either by feeding a 2D rasterization to a
 convolutional neural network (CNN)
 \cite{nmp,dsd,precog,chauffeurnet,covernet,intentnet}, or directly using a
 recurrent neural network (RNN)
-\cite{matf,mfp,vectornet,tnt,socialgan,sociallstm}.
+\cite{matf,mfp,vectornet,tnt,sociallstm}.
 Next, they exchange the information among actors to model interactions, \eg, via a fully-connected
 graph neural network (GNN)
-\cite{v2vnet,spagnn,precog,mfp,ilvm,vectornet} or an attention
+\cite{v2vnet,spagnn,precog,mfp,vectornet} or an attention
 mechanism \cite{interacttransformer,sophie,socialatt,carnet,mercat2020multi}. 
 Finally, they predict future motions per actor from its feature vector
-via a regression header \cite{lgn,mfp,precog,nmp,intentnet,pnpnet,attnmp}.
-
+via a regression header \cite{nmp,lgn,mfp,precog,pnpnet,attnmp}.
 
 
 \begin{figure}[t]
@@ -39,6 +37,7 @@ representation \ROI per actor, which is structured and expressive. Based on
 it, we model interactions and forecast motion in a map topology aware manner.}
 \vspace{-0.2cm}
 \label{fig:teaser}
+\vspace{-0.2cm}
 \end{figure}
 
 
@@ -59,9 +58,11 @@ positions.}
 \end{figure*}
 
 Although such a paradigm has shown competitive results, it has three main shortcomings:
-1) Representing the context information of large regions of space, such as fast moving actors traversing possibly a hundred meters within five seconds, with a single vector is difficult.
+1) Representing the context information of large regions of space, such as fast
+moving actors traversing possibly a hundred meters within five seconds, with a
+single vector is difficult, as we will show in our experiments.
 2) Building a fully-connected interaction graph among actors ignores important map
-structures. For example, an unprotected left turn vehicle should yield to oncoming traffic, while two
+structures~\cite{lgn,vectornet}. For example, an unprotected left turn vehicle should yield to oncoming traffic, while two
 spatially nearby vehicles driving on opposite lanes barely interact with each other.
 3) The regression header does not explicitly leverage the lane information, which could provide a good inductive bias for accurate predictions. 
 As a consequence, regression-based
@@ -98,28 +99,5 @@ We then predict future motions on each
 \textit{LaneRoI} in a \emph{fully-convolutional} manner, such that small regions along
 lanes (nodes in \textit{LaneRoI}) can serve as anchors and provide good priors
 . We demonstrate the effectiveness of our method on the
-large-scale Argoverse motion forecasting benchmark \cite{argoverse}. We achieve
-the \textbf{first rank} on the challenging Argoverse competition leaderboard
-\cite{argoleaderboard}, significantly
-outperforming previous results.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+large-scale Argoverse motion forecasting benchmark \cite{argoverse}, and
+achieve state-of-the-art performance evaluated by the official ranking metric.
