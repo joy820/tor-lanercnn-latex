@@ -4,7 +4,7 @@
 
 Our goal is to  predict the future motions of all actors in a scene, given their
 past motions and an HD map. Different from existing work, we represent an actor
-and its context with a \textit{LaneRoI}, an actor-specific graph which is more
+and its context with a \textit{LaneRoI}, an actor-specific graph representation which is more
 structured and expressive than the single feature vector used in the literature. 
 Based
 on this representation, we design LaneRCNN, a graph-centric motion forecasting
@@ -12,10 +12,10 @@ model that encodes context, models interactions between actors, and predicts fut
 a map topology aware manner. An overview of our model is shown in
 Fig.~\ref{fig:lanercnn}.
 
-In the following, we first introduce our problem formulation and notations 
+In the following, we first introduce our problem formulation 
 in Sec. \ref{sec:notation}. We then define our \ROI representations in Sec.
 \ref{sec:laneroi}. In Sec. \ref{sec:backbone}, we explain how LaneRCNN processes features and models interactions via graph-based message-passing. 
-Finally, we show our map-aware trajectory prediction and learning objectives
+Finally, we show our map-aware trajectory decoder and learning
 in Sec. \ref{sec:output} and Sec. \ref{sec:learning} respectively.
 
 
@@ -23,26 +23,13 @@ in Sec. \ref{sec:output} and Sec. \ref{sec:learning} respectively.
 
 
 
-\begin{figure}[t]
-\begin{center}
-  \includegraphics[height=3.4cm]{figures/laneroi.pdf}
-\end{center}
-\vspace{-0.2cm}
-\caption{
-The LaneRoI of the actor $i$ is a collection of a graph $\G_i$ (constructed following lane topology: nodes as
-lane segments and edges as segment connectivities) and node
-embeddings $\mathbf{F}_i$ (encoding motions of the actor, as well as
-geometric and semantic properties of lane segments).}
-\vspace{-0.2cm}
-\label{fig:laneroi}
-\end{figure}
 \subsection{Problem Formulation}
 \label{sec:notation}
 We denote the  past motion of the $i$-th actor as a set of 2D points encoding
 the center locations over the past $L$ 
  timesteps, \ie, $\left\{(x_i^{-L}, y_i^{-L}), \cdots, (x_i^{-1},
 y_i^{-1})\right\}$, with $(x,y)$  the  2D coordinates  in bird's eye view (BEV). Our goal is to forecast the future motions of all actors in the scene 
-$\left\{(x_i^{0}, y_i^{0}), \cdots, (x_i^T, y_i^T) | i = 1, \cdots, N\right\}$,
+$\left\{(x_i^{1}, y_i^{1}), \cdots, (x_i^{T}, y_i^{T}) | i = 1, \cdots, N\right\}$,
 where $T$ is our prediction horizon and $N$ is the number of actors. 
 
 In addition to the past kinematic information of the actors, maps also play an important role 
@@ -50,21 +37,22 @@ for motion forecasting since (i) actors usually follow lanes on the map,
 (ii) the map structure determines the right of way, which in turns affects the interactions among actors.
 As is common practice in self-driving, we assume an HD map is accessible, 
 which contains lanes and associated semantic attributes, \eg,
-turning lane and lane controlled by traffic light.  
+traffic light information. 
 Each lane is composed of
 many consecutive lane segments $\ell_i$, which are short segments
 along the centerline of the lane.
 In addition, a lane segment $\ell_i$ can have pairwise relationships with
-another segment $\ell_j$ in the same lane or in another lane, 
+another segment $\ell_j$ in the same or another lane, 
 such as $\ell_i$ being a successor of $\ell_j$ or a left neighbor.
 
 \subsection{LaneRoI Representation}
 \label{sec:laneroi}
 
 
-\paragraph{Graph Representation:}
+\paragraph{Graph Representation}
 One straight-forward way to represent an actor and its context (map) information
-is by first rasterizing both its trajectory as well as the map to form a 2D BEV image, and then cropping the underlying representation centered in the actor's location in BEV \cite{dsd, mfp, matf, spagnn}.
+is by first rasterizing both its trajectory as well as the map to form a 2D BEV
+image, and then apply cropping centered in the actor's location in BEV \cite{dsd, mfp, matf, spagnn}.
 However, rasterizations are prone to information loss such as 
 connectivities among lanes. 
 Furthermore, it is a rather inefficient representation
@@ -95,14 +83,15 @@ Hereafter, we will use the term node interchangeably with the term lane segment.
 
 
 
-\paragraph{Graph Input Encoding:}
+\paragraph{Graph Input Encoding}
 The graph $\G_i$ only characterizes map structures around the $i$-th actor without much information about the actor.
 We therefore augment the graph with a set of node embeddings to
-construct our \ROI.
+construct our \textit{LaneRoI}.
 Recall that each node $k$ in $\G_i$ is associated with a lane
-segment $\ell_k$. We design its  embedding $f_k \in \mathbb{R}^C$ 
+segment $\ell_k$. We design its embedding $f_k \in \mathbb{R}^C$ 
 to capture the geometric and semantic information of
-$\ell_k$, as well as its relations with the actor.
+$\ell_k$, as well as its relations with the actor, where $C$ denotes the feature
+dimension.
 In particular, geometric features include the center location, the orientation and the
 curvature of $\ell_k$; semantic features include binary features indicating if
 $\ell_k$ is a turning lane,  if it is currently controlled by a red light,
@@ -123,6 +112,19 @@ where $\mathbf{F}_i \in
 \mathbb{R}^{M_i \times C}$ is the collection of node embeddings $f_k$ and 
 $M_i$ is the number of nodes in $\G_i$. 
 
+\begin{figure}[t]
+\begin{center}
+  \includegraphics[height=3.4cm]{figures/laneroi.pdf}
+\end{center}
+\vspace{-0.2cm}
+\caption{
+The LaneRoI of the actor $i$ is a collection of a graph $\G_i$ (constructed following lane topology: nodes as
+lane segments and edges as segment connectivities) and node
+embeddings $\mathbf{F}_i$ (encoding motions of the actor, as well as
+geometric and semantic properties of lane segments).}
+\vspace{-0.3cm}
+\label{fig:laneroi}
+\end{figure}
 
 
 \subsection{LaneRCNN Backbone}
@@ -135,7 +137,7 @@ Based on these operators, we then describe how our LaneRCNN updates features of
 each \ROI as well as handles interactions among all \textit{LaneRoI}s (actors).
 
 
-\paragraph{Lane Convolution Operator:}
+\paragraph{Lane Convolution Operator}
 We briefly introduce the lane convolution which was originally proposed in \cite{lgn}
 Given a \ROI $(\G_i, \mathbf{F}_i)$, 
 a lane convolution updates features $\mathbf{F}_i$ by aggregating features from
@@ -176,8 +178,9 @@ while respecting the lane topology.}
 \end{figure}
 
 
-\paragraph{Lane Pooling Operator:}
-We design a lane pooling operator which is a learnable pooling function. Given a \ROI
+\paragraph{Lane Pooling Operator}
+We use a learnable pooling function for lane pooling operator.
+Given a \ROI
 $(\G_i, \mathbf{F}_i)$, recall $\G_i$ actually corresponds to a number of
 lanes spanned in the 2D plane (scene). For an arbitrary 2D vector
 $\mathbf{v}$ in the plane, a lane pooling operator pools, or `interpolates',
@@ -248,7 +251,7 @@ is a two-layer multi-layer perceptron (MLP).
 
 
 
-\paragraph{LaneRoI Encoder:}
+\paragraph{LaneRoI Encoder}
 Equipped with operators introduced above, we now describe how LaneRCNN processes
 features for each \textit{LaneRoI}. Given a scene, we first
 construct a \ROI per actor and encode its input information into node
@@ -270,12 +273,12 @@ between consecutive timesteps. We use the lane pooling to extract
 features for these 2D vectors. A 1D CNN with downsampling is then applied to these features to
 build the final shortcut embedding. Intuitively, a lane convolution may suffer
 from the diminishing information flow during the message-passing, while such
-a shortcut can provide an auxiliary path to communicate among far-away nodes
+a shortcut can provide an auxiliary and shorter path to communicate among far-away nodes
 efficiently. We will show that the shortcut significantly boosts the performance in the ablation study.
 
 
 
-\paragraph{LaneRoI Interactor:}
+\paragraph{LaneRoI Interactor}
 So far, our \ROI encoder provides good features for a given actor, but it
 lacks the ability to model interactions among different actors, which is
 extremely important for the motion forecasting in a multi-agent system. We now
@@ -283,10 +286,10 @@ describe  how we handle actor interactions under \ROI representations.
 After processing all \textit{LaneRoI}s with the \ROI encoder (shared weights), we build a global lane graph
 $\G$ containing all lanes in the scene. Its node embeddings are constructed by
 projecting all \textit{LaneRoI}s to $\G$ itself. We then apply four lane convolution layers on $\G$ to perform message passing. Finally, we distribute the
-`global node' embeddings back to each \ROI. Our design is motivated by the fact
-that \textit{actors have interactions since they share the same space-time region}. Similarly,
-in our model, all \textit{LaneRoI}s share the same global graph $\G$ where
-they communicate with each other following map structures. 
+`global node' embeddings back to each \textit{LaneRoI}. Our design is motivated by the fact
+that \textit{actors have interactions since they share the same space-time region}. 
+Similarly, in our model, all \textit{LaneRoI}s share the same global graph $\G$ and
+communicate with each other following $\G$.
 
 In particular, suppose we have a set of \textit{LaneRoI}s $\{(\G_i,
 \mathbf{F}_i)|i=1,\cdots,N\}$ encoded from previous layers and a global lane
@@ -340,27 +343,28 @@ mostly follow lane structures and thus their goals are usually close to a lane
 segment $\ell$. Therefore, our model can predict the final goals of an actor in a
 fully convolutional manner, based on its \ROI features. Namely, we apply a
 2-layer MLP on each node feature $f_k$, and output five values including the
-probability that $\ell_k$ is the closest lane segment to final destination 
+probability that $\ell_k$ is the closest lane segment to destination 
 $p(\ell_k=\text{goal})$, as well as relative residues from $\ell_k$ to the final
 destination $x_{gt} - x_{k}$, $y_{gt} - y_{k}$, $\sin(\theta_{gt} - \theta_k)$,
 $\cos(\theta_{gt} - \theta_k)$.
 
 Based on results of previous steps, we select the top K\footnote{On
-Argoverse, we follow the official metric and use K=6. We also remove duplicate
-goals if two predictions are too close, where the lower confidence one is
-ignored.} 
-For each prediction, we use the position and the direction of the actor at
-$t=0$ as well as those at the goal to interpolate a curve, using Bezier
-quadratic parameterization. 
-We then unroll a constant acceleration kinematic model along this curve, and sample 2D
-points at each future timestep based on the curve and the kinematic information.
+Argoverse, we follow the official metric and use K=6.} predictions.
+% We also remove duplicate
+% goals if two predictions are too close, where the lower confidence one is
+% ignored.} 
+For each predicted goal, we use the position and the direction of the actor at
+$t=0$ as well as those at the goal to interpolate a Bezier quadratic curve.
+We then sample 2D points at each future timestep by unrolling a constant 
+acceleration kinematic model along this curve.
 These 2D points form a trajectory, which serves as an initial proposal of our final forecasting.
 Despite its simplicity, this parameterization gives us surprisingly good results.
 
 Our final step is to refine those trajectory proposals using a learnable header. 
 Similar to the shortcut layer introduced in Sec.
 \ref{sec:backbone}, we use a lane pooling followed by a 1D CNN to 
-pool features of this trajectory. Finally, we decode a pair of values per timestep, representing the residue from the trajectory proposal to the
+pool features of this trajectory. 
+Finally, we decode a pair of values per timestep, representing the residue from the trajectory proposal to the
 ground-truth future position at this timestep (encoded in Frenet coordinate of
 this trajectory proposal). 
 % We provide more detailed definitions of our parameterization and output space in the supplementary~\ref{sec:supp_output}.
@@ -376,8 +380,8 @@ $$
 \mathcal{L} = \mathcal{L}_{\text{cls}} + \alpha\mathcal{L}_{\text{reg}} +
 \beta\mathcal{L}_{\text{refine}},
 $$
-where $\alpha$ and $\beta$ are hyparameters determining relative weights of
-different terms. As our model predicts the goal classification and regression results per node, we simply adopt a binary cross entropy loss for $\mathcal{L}_{\text{cls}}$ with online hard example mining \cite{ohem} and a smooth-L1 loss for $\mathcal{L}_{\text{reg}}$, where
+where $\alpha$ and $\beta$ are hyparameters.
+As our model predicts the goal classification and regression results per node, we simply adopt a binary cross entropy loss for $\mathcal{L}_{\text{cls}}$ with online hard example mining \cite{ohem} and a smooth-L1 loss for $\mathcal{L}_{\text{reg}}$, where
 the $\mathcal{L}_{\text{reg}}$ is only evaluated on positive nodes, \ie closest lane
 segments to the ground-truth final positions. The $\mathcal{L}_{\text{refine}}$ is also
 a smooth-L1 loss with training labels generated on the fly: projecting

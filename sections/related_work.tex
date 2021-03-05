@@ -7,7 +7,8 @@
 Traditional methods use hand-crafted features and rules based on human knowledge 
 to model interactions and constraints in motion forecasting
 % \cite{choi2013understanding,choi2012unified,deo2018would,helbing1995social,mehran2009abnormal,yamaguchi2011you,weichiuplay}, which are sometimes oversimplified and not scalable. 
-\cite{choi2013understanding,choi2012unified,helbing1995social,mehran2009abnormal,yamaguchi2011you,weichiuplay}, which are sometimes oversimplified and not scalable. 
+% \cite{choi2013understanding,helbing1995social,mehran2009abnormal,yamaguchi2011you,weichiuplay}, which are sometimes oversimplified and not scalable. 
+\cite{choi2013understanding,helbing1995social,mehran2009abnormal,yamaguchi2011you}, which are sometimes oversimplified and not scalable. 
 Recently, learning-based approaches employ the deep learning and
 significantly outperform traditional ones.
 Given the actors and the scene, a deep
@@ -16,7 +17,8 @@ To do so, previous methods \cite{precog,chauffeurnet,covernet} often rasterize
 the trajectories of
 actors into a Birds-Eye-View (BEV) image, with different channels representing
 different observation timesteps, and then apply a CNN and RoI pooling
-\cite{fasterrcnn,maskrcnn} to extract actor features. 
+% \cite{fasterrcnn,maskrcnn} to extract actor features. 
+\cite{fasterrcnn} to extract actor features. 
 Maps can be encoded similarly
 \cite{nmp,dsd,intentnet,chauffeurnet,mfp}. 
 However, the square receptive fields of a CNN may not be efficient to
@@ -26,8 +28,8 @@ RNNs are an alternative way to encode actor kinematic information
 \cite{matf,mfp,vectornet,tnt,socialgan,sociallstm} compactly and efficiently.
 Recently, VectorNet \cite{vectornet} and LaneGCN \cite{lgn} generalized such compact encodings to map representations. 
 VectorNet treats a map
-as a collection of polylines and uses a RNN to encode them, while LaneGCN builds a
-graph of lanes and conducts convolutions over the graph. Different from all these
+as a collection of polylines and encodes them with a RNN, while LaneGCN builds a
+graph of lanes and conducts convolutions over it. Different from all these
 work, we encode both actors and maps in an unified graph representation, which
 is more structured and powerful.
 
@@ -48,23 +50,31 @@ distribution of actors.
 However, most of these work do not explicitly consider map structures,
 which largely affects interactions among actors in reality. 
 
-To generate each actor's predicted futures, many works sample multi-modal futures under a conditional variational auto-encoder (CVAE) framework
+To generate predicted trajectories, many works sample multi-modal futures under a conditional variational auto-encoder (CVAE) framework
 \cite{desire,r2p2,mfp,precog,ilvm}, or with a multi-head/mode regressor
-\cite{lgn,cui2019multimodal,mercat2020multi}.
+\cite{lgn,cui2019multimodal,mercat2020multi,mangalam2020not,choi2019drogon}.
 Others output discrete sets of
-trajectory samples \cite{dsd,covernet,multipath,jerryplan}. Recently, TNT \cite{tnt}
+trajectory samples \cite{dsd,covernet,multipath}. Recently, TNT \cite{tnt}
 concurrently and independently designs a similar output parameterization as ours
 where lanes are used as priors for the forecasting. 
-Note that, in addition to the parameterization, we contribute a novel graph representation and a powerful
+In addition to this, we also contribute a novel graph representation and a powerful
 architecture which significantly outperforms their results.
 
 
 
 \paragraph{Graph Neural Networks}
-Relying on operators like graph convolution and message passing, graph neural networks (GNNs) and their variants \cite{scarselli2008graph,bruna2013spectral,li2015gated,kipf2016semi,hamilton2017inductive,liao2019lanczosnet} generalize deep learning on regular graphs like grids to ones with irregular topologies.
-They have achieved great successes in learning useful graph representations for
-various tasks \cite{monti2017geometric,qi20173d,teney2017graph,li2017situation,garcia2018few}.
-We draw inspiration from the general concept ``ego-graph'' and propose \textit{LaneRoI}, which is specially designed for lane graphs and captures both the local map topologies and the past motion of an individual actor.
+Relying on operators like graph convolution and message passing, graph neural
+networks (GNNs) and their variants
+% \cite{scarselli2008graph,bruna2013spectral,li2015gated,kipf2016semi,hamilton2017inductive,liao2019lanczosnet}
+\cite{scarselli2008graph,bruna2013spectral,li2015gated,kipf2016semi,hamilton2017inductive,ying2018hierarchical,gao2019graph}
+generalize deep learning on regular graphs like grids to ones with irregular
+topologies, and have achieved great successes in 
+% They have achieved great successes in learning useful graph representations for
+% various tasks \cite{monti2017geometric,qi20173d,teney2017graph,li2017situation,garcia2018few}.
+various tasks \cite{monti2017geometric,teney2017graph,li2017situation,garcia2018few}.
+We draw inspiration from the general concept ``ego-graph'' and propose
+\textit{LaneRoI}, which is specially designed for lane graphs and captures both
+the local map topologies and motions of an actor.
 Moreover, to capture interactions among actors, we further propose an
 interaction module which effectively communicates information among
 \textit{LaneRoI} graphs.

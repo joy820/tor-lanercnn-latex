@@ -22,7 +22,8 @@ graph neural network (GNN)
 \cite{v2vnet,spagnn,precog,mfp,vectornet} or an attention
 mechanism \cite{interacttransformer,sophie,socialatt,carnet,mercat2020multi}. 
 Finally, they predict future motions per actor from its feature vector
-via a regression header \cite{nmp,lgn,mfp,precog,pnpnet,attnmp}.
+% via a regression header \cite{nmp,lgn,mfp,precog,pnpnet,attnmp}.
+via a regression header \cite{nmp,lgn,mfp,precog,pnpnet}.
 
 
 \begin{figure}[t]
@@ -35,7 +36,6 @@ information into a feature vector, and treat it as a node in an interaction grap
 In contrast, we propose a graph-based
 representation \ROI per actor, which is structured and expressive. Based on
 it, we model interactions and forecast motion in a map topology aware manner.}
-\vspace{-0.2cm}
 \label{fig:teaser}
 \vspace{-0.2cm}
 \end{figure}
@@ -43,8 +43,9 @@ it, we model interactions and forecast motion in a map topology aware manner.}
 
 
 \begin{figure*}[t]
+\vspace{-0.2cm}
 \begin{center}
-  \includegraphics[height=6.0cm]{figures/lanercnn.pdf}
+  \includegraphics[height=5.8cm]{figures/lanercnn.pdf}
 \end{center}
 \vspace{-0.3cm}
 \caption{Overview of LaneRCNN. It first
@@ -53,7 +54,7 @@ each \ROI with an encoder, and then models interactions among actors with a
 graph-based interactor. Finally, LaneRCNN predicts final positions of actors in
 a fully-convolutional manner, and then decodes full trajectories based on these
 positions.}
-\vspace{-0.1cm}
+\vspace{-0.2cm}
 \label{fig:lanercnn}
 \end{figure*}
 
@@ -62,7 +63,7 @@ Although such a paradigm has shown competitive results, it has three main shortc
 moving actors traversing possibly a hundred meters within five seconds, with a
 single vector is difficult, as we will show in our experiments.
 2) Building a fully-connected interaction graph among actors ignores important map
-structures~\cite{lgn,vectornet}. For example, an unprotected left turn vehicle should yield to oncoming traffic, while two
+structures~\cite{lgn}. For example, an unprotected left turn vehicle should yield to oncoming traffic, while two
 spatially nearby vehicles driving on opposite lanes barely interact with each other.
 3) The regression header does not explicitly leverage the lane information, which could provide a good inductive bias for accurate predictions. 
 As a consequence, regression-based
